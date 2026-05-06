@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>EdarGo ERP — Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#C8291A;--red-d:#A01F12;--red-s:#FDECEA;
+  --navy:#0D1F35;--navy-m:#162B46;--navy-l:#1E3A57;
+  --gold:#C9913A;--gold-l:#F0D89A;--gold-s:rgba(201,145,58,.12);
+  --cream:#FAF8F4;--cream-d:#F0EDE8;
+  --g50:#F9FAFB;--g100:#F4F5F7;--g200:#E8EAEE;--g400:#9BA3AF;--g600:#5A6475;--g800:#2D3340;
+  --white:#fff;--text:#1A1F2E;
+  --fh:'Sora',sans-serif;--fb:'DM Sans',sans-serif;
+  --r:10px;--r2:16px;--r3:22px;
+  --sh1:0 1px 3px rgba(13,31,53,.06);
+  --sh2:0 2px 8px rgba(13,31,53,.08);
+  --sh3:0 6px 24px rgba(13,31,53,.10);
+  --sh4:0 16px 48px rgba(13,31,53,.14);
+  --sidebar:240px;
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:var(--fb);color:var(--text);background:var(--g50);line-height:1.6;overflow-x:hidden;min-height:100vh}
+
+/* LAYOUT */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar);background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto;transition:width .25s}
+.sidebar.collapsed{width:64px}
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .25s}
+.sidebar.collapsed ~ .main{margin-left:64px}
+
+/* SIDEBAR */
+.sb-brand{display:flex;align-items:center;gap:10px;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo{width:36px;height:36px;background:var(--red);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(200,41,26,.35)}
+.sb-logo svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sb-brand-text{overflow:hidden;transition:opacity .2s}
+.collapsed .sb-brand-text{opacity:0;width:0}
+.sb-name{font-family:var(--fh);font-size:15px;font-weight:800;color:#fff;line-height:1.1}
+.sb-name span{color:var(--red)}
+.sb-sub{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.06em;margin-top:2px}
+.sb-nav{flex:1;padding:12px 10px}
+.sb-section{font-family:var(--fh);font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.25);padding:14px 8px 6px;white-space:nowrap;overflow:hidden}
+.collapsed .sb-section{opacity:0}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;transition:all .18s;color:rgba(255,255,255,.6);font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;border:none;background:none;width:100%;text-align:left;font-family:var(--fb)}
+.sb-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.sb-item.active{background:var(--red);color:#fff;box-shadow:0 4px 12px rgba(200,41,26,.35)}
+.sb-icon{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sb-label{transition:opacity .2s}
+.collapsed .sb-label{opacity:0;width:0;overflow:hidden}
+.sb-toggle{padding:12px 10px;border-top:1px solid rgba(255,255,255,.08)}
+.sb-toggle-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px;border-radius:8px;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;transition:all .2s;font-family:var(--fh);font-size:11px;font-weight:600}
+.sb-toggle-btn:hover{background:rgba(255,255,255,.08);color:#fff}
+.sb-toggle-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;flex-shrink:0}
+.collapsed .sb-toggle-text{display:none}
+
+/* TOPBAR */
+.topbar{height:60px;background:var(--white);border-bottom:1px solid var(--g200);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:90;box-shadow:var(--sh1)}
+.tb-left{display:flex;align-items:center;gap:12px}
+.page-title{font-family:var(--fh);font-size:17px;font-weight:800;color:var(--navy)}
+.page-subtitle{font-size:12px;color:var(--g400);margin-top:1px}
+.tb-right{display:flex;align-items:center;gap:12px}
+.tb-date{font-size:12px;color:var(--g400);font-weight:500}
+.avatar-btn{width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;font-family:var(--fh);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;box-shadow:0 2px 8px rgba(13,31,53,.2)}
+
+/* CONTENT */
+.content{flex:1;padding:24px;max-width:1400px}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--g200);border-radius:var(--r2);padding:22px;box-shadow:var(--sh1)}
+.card-title{font-family:var(--fh);font-size:14px;font-weight:800;color:var(--navy);margin-bottom:2px}
+.card-sub{font-size:12px;color:var(--g400)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:var(--white);border:1px solid var(--g200);border-radius:var(--r2);padding:20px;transition:all .2s;box-shadow:var(--sh1)}
+.kpi:hover{box-shadow:var(--sh3);transform:translateY(-2px)}
+.kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.kpi-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center}
+.kpi-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.kpi-badge{font-family:var(--fh);font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px}
+.kpi-val{font-family:var(--fh);font-size:26px;font-weight:900;color:var(--navy);line-height:1}
+.kpi-label{font-size:12px;color:var(--g600);margin-top:4px;font-weight:500}
+.kpi-trend{font-size:11px;font-weight:600;margin-top:8px}
+
+/* GRID HELPERS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.g13{display:grid;grid-template-columns:1fr 2fr;gap:20px;margin-bottom:24px}
+.mb4{margin-bottom:16px}
+.mb6{margin-bottom:24px}
+.flex{display:flex;align-items:center;gap:8px}
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+
+/* TABLES */
+.table-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--g200)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--g50);color:var(--g600);font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:11px 14px;text-align:left;border-bottom:1px solid var(--g200)}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--g100);color:var(--g800);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--g50)}
+
+/* BADGES / STATUS */
+.badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--fh);font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:6px;white-space:nowrap}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.badge-green{background:#D1FAE5;color:#065F46}
+.badge-blue{background:#DBEAFE;color:#1D4ED8}
+.badge-yellow{background:#FEF9C3;color:#854D0E}
+.badge-orange{background:#FFEDD5;color:#9A3412}
+.badge-red{background:#FEE2E2;color:#991B1B}
+.badge-gray{background:var(--g100);color:var(--g600)}
+.badge-gold{background:#FEF3C7;color:#92400E}
+.badge-navy{background:rgba(13,31,53,.1);color:var(--navy-m)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--fh);font-size:12.5px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;border:none;transition:all .18s;text-decoration:none;white-space:nowrap}
+.btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.btn-primary{background:var(--red);color:#fff;box-shadow:0 2px 8px rgba(200,41,26,.25)}
+.btn-primary:hover{background:var(--red-d);transform:translateY(-1px);box-shadow:0 4px 14px rgba(200,41,26,.35)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-navy:hover{background:var(--navy-m);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--g200)}
+.btn-outline:hover{border-color:var(--navy);background:var(--g50)}
+.btn-sm{padding:5px 11px;font-size:11.5px}
+.btn-ghost{background:transparent;color:var(--g600);border:1.5px solid var(--g200)}
+.btn-ghost:hover{background:var(--g50);color:var(--g800)}
+.btn-danger{background:transparent;color:var(--red);border:1.5px solid rgba(200,41,26,.25)}
+.btn-danger:hover{background:var(--red-s);border-color:var(--red)}
+
+/* SEARCH + FILTER */
+.search-bar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.search-input{flex:1;min-width:200px;padding:8px 14px;border:1.5px solid var(--g200);border-radius:8px;font-family:var(--fb);font-size:13px;color:var(--text);background:var(--white);outline:none}
+.search-input:focus{border-color:var(--navy)}
+select.search-input{cursor:pointer}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--white);border-radius:var(--r3);box-shadow:var(--sh4);width:100%;max-width:540px;max-height:90vh;overflow-y:auto}
+.modal-lg{max-width:720px}
+.modal-header{padding:22px 24px 16px;border-bottom:1px solid var(--g200);display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-family:var(--fh);font-size:16px;font-weight:800;color:var(--navy)}
+.modal-close{width:30px;height:30px;border-radius:50%;background:var(--g100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--g600);font-size:18px;transition:all .15s}
+.modal-close:hover{background:var(--g200);color:var(--text)}
+.modal-body{padding:22px 24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--g200);display:flex;justify-content:flex-end;gap:10px}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-family:var(--fh);font-size:11.5px;font-weight:700;color:var(--navy);letter-spacing:.04em}
+.form-input{padding:9px 13px;border:1.5px solid var(--g200);border-radius:8px;font-family:var(--fb);font-size:13.5px;color:var(--text);outline:none;transition:border-color .2s;background:var(--white)}
+.form-input:focus{border-color:var(--navy)}
+textarea.form-input{resize:vertical;min-height:80px}
+select.form-input{cursor:pointer}
+
+/* TOAST */
+.toast{position:fixed;top:20px;right:20px;background:var(--navy);color:#fff;padding:13px 18px;border-radius:10px;box-shadow:var(--sh4);display:flex;align-items:center;gap:10px;z-index:9999;font-size:13.5px;font-weight:500;max-width:320px;animation:slideIn .35s ease}
+.toast.success{background:#065F46}
+.toast.error{background:#991B1B}
+.toast.warning{background:#92400E}
+.toast svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.5;flex-shrink:0}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+
+/* STEP TRACKER */
+.step-bar{display:flex;gap:0;border-radius:var(--r);overflow:hidden;border:1.5px solid var(--g200)}
+.step-seg{flex:1;padding:8px 6px;text-align:center;font-family:var(--fh);font-size:10px;font-weight:700;color:var(--g400);background:var(--g50);cursor:pointer;transition:all .15s;border-right:1px solid var(--g200)}
+.step-seg:last-child{border-right:none}
+.step-seg.active{background:var(--red);color:#fff}
+.step-seg.done{background:var(--navy);color:#fff}
+.step-seg:hover:not(.active):not(.done){background:var(--g100)}
+
+/* PROGRESS RING */
+.ring-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
+.ring-label{font-size:11px;color:var(--g600);font-weight:600}
+
+/* PIPELINE BOARD */
+.pipeline{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px}
+.pipeline-col{min-width:190px;background:var(--g50);border-radius:var(--r2);padding:12px;border:1.5px solid var(--g200);flex-shrink:0}
+.pipeline-head{font-family:var(--fh);font-size:11px;font-weight:800;color:var(--navy);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;text-transform:uppercase;letter-spacing:.06em}
+.pipeline-count{background:var(--navy);color:#fff;width:20px;height:20px;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pipeline-card{background:var(--white);border:1.5px solid var(--g200);border-radius:var(--r);padding:10px;margin-bottom:8px;cursor:pointer;transition:all .2s;font-size:12.5px}
+.pipeline-card:hover{border-color:var(--red);box-shadow:var(--sh2)}
+.pipeline-card:last-child{margin-bottom:0}
+.pc-name{font-weight:700;color:var(--navy);margin-bottom:4px;font-size:12.5px}
+.pc-client{color:var(--g600);font-size:11.5px}
+.pc-type{margin-top:6px}
+
+/* DOC CHECKLIST */
+.doc-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1.5px solid var(--g200);margin-bottom:6px;transition:all .18s}
+.doc-item:hover{border-color:var(--g400)}
+.doc-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--g200);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.doc-check.checked{background:var(--navy);border-color:var(--navy)}
+.doc-check.checked svg{display:block}
+.doc-check svg{display:none;width:10px;height:10px;stroke:#fff;stroke-width:3;fill:none}
+.doc-name{flex:1;font-size:13px;color:var(--g800)}
+.doc-status-sel{font-family:var(--fh);font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;border:none;cursor:pointer;outline:none}
+
+/* PROJECT TIMELINE */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:14px;padding-bottom:20px;position:relative}
+.tl-item:last-child{padding-bottom:0}
+.tl-item::before{content:'';position:absolute;left:15px;top:30px;width:2px;bottom:0;background:var(--g200)}
+.tl-item:last-child::before{display:none}
+.tl-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;font-family:var(--fh);font-size:11px;font-weight:800}
+.tl-done{background:var(--navy);color:#fff}
+.tl-active{background:var(--red);color:#fff;box-shadow:0 0 0 4px rgba(200,41,26,.15)}
+.tl-pending{background:var(--g100);color:var(--g400)}
+.tl-content{flex:1;padding-top:6px}
+.tl-step{font-family:var(--fh);font-size:12.5px;font-weight:700;color:var(--navy)}
+.tl-date{font-size:11px;color:var(--g400);margin-top:2px}
+
+/* STAT ROW */
+.stat-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.stat-pill{background:var(--white);border:1.5px solid var(--g200);border-radius:var(--r);padding:12px 18px;display:flex;flex-direction:column;gap:3px;min-width:100px}
+.sp-val{font-family:var(--fh);font-size:22px;font-weight:900;color:var(--navy);line-height:1}
+.sp-label{font-size:11px;color:var(--g600)}
+
+/* TAG PILL */
+.tag{display:inline-flex;align-items:center;gap:5px;font-family:var(--fh);font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--g100);color:var(--g600)}
+
+/* SECTION HEADER */
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+.section-title{font-family:var(--fh);font-size:16px;font-weight:800;color:var(--navy)}
+
+/* SETTINGS */
+.settings-block{background:var(--white);border:1.5px solid var(--g200);border-radius:var(--r2);padding:22px;margin-bottom:20px}
+.settings-title{font-family:var(--fh);font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.settings-desc{font-size:12.5px;color:var(--g600);margin-bottom:18px;line-height:1.65}
+.dns-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:12px}
+.dns-table th{background:var(--g50);padding:9px 12px;border:1px solid var(--g200);font-family:var(--fh);font-size:11px;font-weight:700;color:var(--g600);text-align:left;text-transform:uppercase}
+.dns-table td{padding:9px 12px;border:1px solid var(--g200);color:var(--g800)}
+.code-block{background:var(--navy);color:#e2e8f0;border-radius:var(--r);padding:16px;font-size:12px;font-family:'Courier New',monospace;overflow-x:auto;line-height:1.7;margin-top:10px}
+.code-block .cm{color:#9CA3AF}.code-block .ck{color:#93C5FD}.code-block .cv{color:#86EFAC}.code-block .cs{color:#FCA5A5}
+
+/* LAPORAN */
+.report-card{background:linear-gradient(135deg,var(--navy),var(--navy-l));border-radius:var(--r2);padding:24px;color:#fff;display:flex;flex-direction:column;gap:8px}
+.report-card .title{font-family:var(--fh);font-size:15px;font-weight:800}
+.report-card .val{font-family:var(--fh);font-size:28px;font-weight:900;line-height:1}
+.report-card .sub{font-size:12px;opacity:.6}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:52px 20px;color:var(--g400)}
+.empty-state svg{width:48px;height:48px;margin:0 auto 14px;stroke:var(--g200);fill:none;stroke-width:1.5}
+.empty-state p{font-size:14px}
+
+/* ACTIVITY */
+.activity-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--g100)}
+.activity-item:last-child{border-bottom:none}
+.act-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.act-text{flex:1;font-size:13px;color:var(--g800);line-height:1.5}
+.act-time{font-size:11px;color:var(--g400);flex-shrink:0;margin-top:2px}
+
+/* CHART CONTAINER */
+.chart-wrap{position:relative;height:200px}
+.chart-wrap canvas{max-height:200px}
+
+/* TEAM CARD */
+.team-card{background:var(--white);border:1.5px solid var(--g200);border-radius:var(--r2);padding:22px;display:flex;gap:16px;align-items:flex-start;transition:all .2s}
+.team-card:hover{box-shadow:var(--sh3);transform:translateY(-2px)}
+.team-av{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:18px;font-weight:800;color:#fff;flex-shrink:0}
+.team-name{font-family:var(--fh);font-size:14px;font-weight:800;color:var(--navy)}
+.team-role{font-size:12px;color:var(--g600);margin-top:2px}
+.team-stats{display:flex;gap:12px;margin-top:10px}
+.ts{font-family:var(--fh);font-size:13px;font-weight:700;color:var(--navy);display:flex;flex-direction:column;gap:1px}
+.ts span{font-size:10.5px;color:var(--g400);font-weight:500}
+
+/* INVOICE */
+.inv-amount{font-family:var(--fh);font-size:14px;font-weight:800;color:var(--navy)}
+
+/* PROGRESS BAR MINI */
+.prog-bar{background:var(--g100);border-radius:999px;height:6px;overflow:hidden;margin-top:6px}
+.prog-fill{height:100%;border-radius:999px;background:var(--red);transition:width .4s ease}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--g200);border-radius:999px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .sidebar{width:64px}
+  .sidebar .sb-brand-text,.sidebar .sb-label,.sidebar .sb-section,.sidebar .sb-toggle-text{opacity:0;width:0;overflow:hidden}
+  .main{margin-left:64px}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .g13{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .kpi-grid{grid-template-columns:1fr}
+  .g2,.g3{grid-template-columns:1fr}
+  .content{padding:16px}
+}
+</style>
+</head>
+<body>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Sora',sans-serif;color:#0D1F35"><div style="text-align:center"><div style="width:48px;height:48px;background:#C8291A;border-radius:12px;margin:0 auto 16px;animation:spin 1s linear infinite"></div><p style="font-weight:700">Memuat EdarGo ERP…</p></div></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useReducer, useRef, useCallback, useMemo, createContext, useContext } = React;
+
+// ═══════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════
+const STEPS = ['Konsultasi Awal','Identifikasi Izin','Checklist Dokumen','Review & Gap','Perbaikan Dok.','Submit & Monitor','Laporan & Followup'];
+const LICENSE = ['BPOM MD','BPOM ML','SPP-IRT','Notif. Kosmetik','Suplemen','Obat Tradisional','CPPOB','CPKB'];
+const STEP_COLORS = ['#60A5FA','#34D399','#FBBF24','#F97316','#EF4444','#8B5CF6','#10B981'];
+const INV_STATUS = ['Draft','Terkirim','Lunas','Terlambat'];
+const PROJ_STATUS = ['Aktif','Selesai','Hold','Batal'];
+
+const DOC_TMPL = {
+  'BPOM MD':['Formulir permohonan','NIB / SIUP','Sertifikat PKP','Spesifikasi bahan baku & BTP','Hasil uji laboratorium','Alur proses produksi','Rancangan label produk','Layout sarana produksi'],
+  'BPOM ML':['Formulir permohonan','Dokumen impor','Certificate of Free Sale','Sertifikat GMP/HACCP pabrik asal','Hasil uji laboratorium','Contoh produk & label','Surat kuasa distributor','NIB importir'],
+  'SPP-IRT':['Formulir pendaftaran','KTP pemilik usaha','Pas foto 3×4','Denah lokasi produksi','Denah tata ruang produksi','Sertifikat PKP dari Dinkos'],
+  'Notif. Kosmetik':['Formulir notifikasi','Daftar bahan & komposisi INCI','Spesifikasi produk jadi','Hasil uji keamanan/uji dermatologi','Rancangan penandaan/label','Data perusahaan','Sertifikat CPKB','Nomor registrasi perusahaan'],
+  'Suplemen':['Formulir permohonan','Spesifikasi produk','COA bahan baku','Hasil uji lab (mutu & keamanan)','Rancangan label produk','Data perusahaan'],
+  'Obat Tradisional':['Formulir permohonan','Data formula','Spesifikasi bahan baku','Cara pembuatan','Hasil uji lab','Rancangan label','Data perusahaan'],
+  'default':['Formulir permohonan','NIB perusahaan','Dokumen teknis produk','Rancangan label produk','Data perusahaan'],
+};
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const fmt = n => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(n);
+const fmtShort = n => n >= 1e9 ? 'Rp '+(n/1e9).toFixed(1)+'M' : n >= 1e6 ? 'Rp '+(n/1e6).toFixed(1)+'jt' : fmt(n);
+const today = () => new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+const dateStr = d => new Date(d).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+const stepClass = (step,cur) => step < cur ? 'done' : step === cur ? 'active' : '';
+const statusColor = s => ({
+  'Aktif':'blue','Selesai':'green','Hold':'yellow','Batal':'gray',
+  'Draft':'gray','Terkirim':'blue','Lunas':'green','Terlambat':'red',
+  'Baru':'blue','Reguler':'navy','VIP':'gold','Tidak Aktif':'gray'
+}[s]||'gray');
+
+// ═══════════════════════════════════════════════════════
+// INITIAL DATA
+// ═══════════════════════════════════════════════════════
+const initClients = [
+  {id:'c1',name:'CV Berkah Pangan',contact:'Andi Santoso',phone:'08111111111',email:'andi@berkahpangan.id',license:'BPOM MD',status:'VIP',city:'Bandung',joined:'2024-03-10',notes:'Klien lama, 3 produk aktif'},
+  {id:'c2',name:'PT Kosmetika Prima',contact:'Dewi Lestari',phone:'08122222222',email:'dewi@kosmetikaprima.id',license:'Notif. Kosmetik',status:'VIP',city:'Jakarta',joined:'2024-06-01',notes:'Brand skincare premium'},
+  {id:'c3',name:'CV Herbal Nusantara',contact:'Budi Raharjo',phone:'08133333333',email:'budi@herbalnusantara.id',license:'Obat Tradisional',status:'Reguler',city:'Yogyakarta',joined:'2024-07-15',notes:'Fokus jamu tradisional'},
+  {id:'c4',name:'UD Selera Ibu',contact:'Siti Aminah',phone:'08144444444',email:'siti@seleraibu.id',license:'SPP-IRT',status:'Reguler',city:'Solo',joined:'2024-09-01',notes:'Produk snack rumahan'},
+  {id:'c5',name:'PT Importindo Raya',contact:'Michael Tan',phone:'08155555555',email:'michael@importindo.id',license:'BPOM ML',status:'VIP',city:'Jakarta',joined:'2024-01-20',notes:'Importir resmi 5 brand'},
+  {id:'c6',name:'CV Jamu Tradisi',contact:'Wahyu Santoso',phone:'08166666666',email:'wahyu@jamutradisi.id',license:'Obat Tradisional',status:'Baru',city:'Surabaya',joined:'2025-02-01',notes:'Klien baru, perlu orientasi'},
+  {id:'c7',name:'PT Pangan Sejahtera',contact:'Rina Handayani',phone:'08177777777',email:'rina@pangansejahtera.id',license:'BPOM MD',status:'Reguler',city:'Semarang',joined:'2024-11-05',notes:'Produk bakery & snack'},
+  {id:'c8',name:'CV Beauty House',contact:'Linda Kusuma',phone:'08188888888',email:'linda@beautyhouse.id',license:'Notif. Kosmetik',status:'Aktif',city:'Bali',joined:'2025-01-10',notes:'Brand kosmetik lokal'},
+];
+
+const initProjects = [
+  {id:'p1',clientId:'c1',name:'BPOM MD — Keripik Singkong Premium',license:'BPOM MD',step:6,status:'Aktif',pic:'Reza',startDate:'2024-10-01',dueDate:'2025-05-30',value:4500000,urgent:false,notes:'Tahap monitoring BPOM',docs:{}},
+  {id:'p2',clientId:'c2',name:'Notif. Kosmetik — Serum Vitamin C',license:'Notif. Kosmetik',step:7,status:'Selesai',pic:'Fitri',startDate:'2024-08-01',dueDate:'2025-01-31',value:3200000,urgent:false,notes:'Selesai, notif terbit',docs:{}},
+  {id:'p3',clientId:'c3',name:'Reg. Jamu — Minyak Kayu Putih Extra',license:'Obat Tradisional',step:4,status:'Aktif',pic:'Arif',startDate:'2024-11-15',dueDate:'2025-06-30',value:5500000,urgent:true,notes:'Gap analysis perlu revisi komposisi',docs:{}},
+  {id:'p4',clientId:'c4',name:'SPP-IRT — Kerupuk Tempe Crispy',license:'SPP-IRT',step:3,status:'Aktif',pic:'Fitri',startDate:'2025-01-10',dueDate:'2025-04-30',value:1800000,urgent:false,notes:'Menunggu kelengkapan dokumen',docs:{}},
+  {id:'p5',clientId:'c5',name:'BPOM ML — Susu Formula Import Brand X',license:'BPOM ML',step:5,status:'Aktif',pic:'Reza',startDate:'2024-12-01',dueDate:'2025-07-31',value:8500000,urgent:true,notes:'Revisi label bilingual',docs:{}},
+  {id:'p6',clientId:'c6',name:'Reg. Jamu — Kapsul Temulawak',license:'Obat Tradisional',step:2,status:'Aktif',pic:'Arif',startDate:'2025-02-15',dueDate:'2025-08-31',value:4200000,urgent:false,notes:'Identifikasi kategori izin',docs:{}},
+  {id:'p7',clientId:'c7',name:'BPOM MD — Roti Gandum Whole Wheat',license:'BPOM MD',step:1,status:'Aktif',pic:'Fitri',startDate:'2025-03-01',dueDate:'2025-09-30',value:3800000,urgent:false,notes:'Konsultasi awal, onboarding',docs:{}},
+  {id:'p8',clientId:'c8',name:'Notif. Kosmetik — Lip Balm Mango Series',license:'Notif. Kosmetik',step:3,status:'Aktif',pic:'Reza',startDate:'2025-01-20',dueDate:'2025-06-30',value:2600000,urgent:false,notes:'Pengumpulan dokumen',docs:{}},
+  {id:'p9',clientId:'c1',name:'BPOM MD — Kacang Rendah Kalori',license:'BPOM MD',step:7,status:'Selesai',pic:'Arif',startDate:'2024-05-01',dueDate:'2024-12-31',value:3500000,urgent:false,notes:'Izin terbit Des 2024',docs:{}},
+  {id:'p10',clientId:'c2',name:'Notif. Kosmetik — Sunscreen SPF50',license:'Notif. Kosmetik',step:4,status:'Aktif',pic:'Fitri',startDate:'2025-02-01',dueDate:'2025-08-31',value:2800000,urgent:false,notes:'Review hasil uji lab',docs:{}},
+];
+
+const initInvoices = [
+  {id:'i1',projectId:'p1',clientId:'c1',no:'INV-2025-001',amount:4500000,dp:2250000,dueDate:'2025-03-31',status:'Lunas',issuedDate:'2025-03-01',notes:'Pembayaran lunas'},
+  {id:'i2',projectId:'p3',clientId:'c3',no:'INV-2025-002',amount:5500000,dp:2750000,dueDate:'2025-04-15',status:'Terkirim',issuedDate:'2025-03-15',notes:'Menunggu DP'},
+  {id:'i3',projectId:'p5',clientId:'c5',no:'INV-2025-003',amount:8500000,dp:4250000,dueDate:'2025-02-28',status:'Terlambat',issuedDate:'2025-01-31',notes:'Overdue 30 hari'},
+  {id:'i4',projectId:'p6',clientId:'c6',no:'INV-2025-004',amount:4200000,dp:0,dueDate:'2025-05-01',status:'Draft',issuedDate:'2025-03-20',notes:'Draft — belum terkirim'},
+  {id:'i5',projectId:'p7',clientId:'c7',no:'INV-2025-005',amount:3800000,dp:1900000,dueDate:'2025-04-30',status:'Terkirim',issuedDate:'2025-03-10',notes:'DP 50% belum dibayar'},
+  {id:'i6',projectId:'p9',clientId:'c1',no:'INV-2024-009',amount:3500000,dp:3500000,dueDate:'2024-12-01',status:'Lunas',issuedDate:'2024-11-01',notes:'Lunas'},
+];
+
+const initTeam = [
+  {id:'t1',name:'Reza Firmansyah',role:'Lead Consultant',color:'#C8291A',initials:'RF',active:3,done:12,joined:'2022-01-15',skills:['BPOM MD','BPOM ML','Suplemen']},
+  {id:'t2',name:'Fitri Amaliyah',role:'Regulatory Specialist',color:'#0D1F35',initials:'FA',active:3,done:9,joined:'2022-06-01',skills:['Notif. Kosmetik','CPKB']},
+  {id:'t3',name:'Arif Budiman',role:'Document Reviewer',color:'#C9913A',initials:'AB',active:2,done:15,joined:'2021-08-20',skills:['Obat Tradisional','SPP-IRT','CPPOB']},
+  {id:'t4',name:'Sarah Putri',role:'Client Relations',color:'#0891B2',initials:'SP',active:0,done:8,joined:'2023-03-01',skills:['CRM','Onboarding']},
+  {id:'t5',name:'Dimas Cahya',role:'Training Coordinator',color:'#7C3AED',initials:'DC',active:1,done:20,joined:'2021-05-10',skills:['Pelatihan','SPP-IRT','BPOM MD']},
+];
+
+// ═══════════════════════════════════════════════════════
+// CONTEXT & REDUCER
+// ═══════════════════════════════════════════════════════
+const Ctx = createContext(null);
+function getLS(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;}}
+
+const initState = {
+  clients: getLS('eg_clients',initClients),
+  projects: getLS('eg_projects',initProjects),
+  invoices: getLS('eg_invoices',initInvoices),
+  team: getLS('eg_team',initTeam),
+  module: 'dashboard',
+  modal: null,
+  toast: null,
+  gasUrl: localStorage.getItem('eg_gasUrl')||'',
+  sheetId: localStorage.getItem('eg_sheetId')||'',
+  collapsed: false,
+  viewMode: 'list',
+};
+
+function reducer(s, a) {
+  switch(a.type) {
+    case 'MOD': return {...s, module:a.v};
+    case 'MODAL': return {...s, modal:a.v};
+    case 'TOAST': return {...s, toast:a.v};
+    case 'SIDEBAR': return {...s, collapsed:!s.collapsed};
+    case 'VIEW': return {...s, viewMode:a.v};
+    case 'ADD_CLIENT': return {...s, clients:[...s.clients,a.v]};
+    case 'UPD_CLIENT': return {...s, clients:s.clients.map(c=>c.id===a.v.id?a.v:c)};
+    case 'DEL_CLIENT': return {...s, clients:s.clients.filter(c=>c.id!==a.v)};
+    case 'ADD_PROJ': return {...s, projects:[...s.projects,a.v]};
+    case 'UPD_PROJ': return {...s, projects:s.projects.map(p=>p.id===a.v.id?a.v:p)};
+    case 'DEL_PROJ': return {...s, projects:s.projects.filter(p=>p.id!==a.v)};
+    case 'ADD_INV': return {...s, invoices:[...s.invoices,a.v]};
+    case 'UPD_INV': return {...s, invoices:s.invoices.map(i=>i.id===a.v.id?a.v:i)};
+    case 'DEL_INV': return {...s, invoices:s.invoices.filter(i=>i.id!==a.v)};
+    case 'SET_CFG': return {...s, gasUrl:a.gasUrl, sheetId:a.sheetId};
+    default: return s;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// SMALL COMPONENTS
+// ═══════════════════════════════════════════════════════
+function Toast() {
+  const {state,dispatch} = useContext(Ctx);
+  useEffect(()=>{
+    if(state.toast){const t=setTimeout(()=>dispatch({type:'TOAST',v:null}),3200);return()=>clearTimeout(t);}
+  },[state.toast]);
+  if(!state.toast) return null;
+  const icons = {success:'M5 13l4 4L19 7',error:'M6 18L18 6M6 6l12 12',warning:'M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z'};
+  return (
+    <div className={`toast ${state.toast.type||''}`}>
+      <svg viewBox="0 0 24 24"><path d={icons[state.toast.type||'success']} strokeLinecap="round" strokeLinejoin="round"/></svg>
+      {state.toast.msg}
+    </div>
+  );
+}
+
+function Badge({s}) {
+  const c = statusColor(s);
+  return <span className={`badge badge-${c}`}>{s}</span>;
+}
+
+function ProgressRing({val,max,size=52,color='#C8291A'}) {
+  const r = (size-8)/2, circ = 2*Math.PI*r;
+  const pct = max>0?Math.round(val/max*100):0;
+  const offset = circ - (pct/100)*circ;
+  return (
+    <div className="ring-wrap">
+      <svg width={size} height={size}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#E8EAEE" strokeWidth="6"/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="6"
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          style={{transform:`rotate(-90deg)`,transformOrigin:'50% 50%',transition:'stroke-dashoffset .5s ease'}}/>
+        <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle"
+          style={{fontFamily:'Sora',fontSize:11,fontWeight:800,fill:color}}>{pct}%</text>
+      </svg>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════
+const NAV = [
+  {id:'dashboard',label:'Dashboard',path:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'},
+  {id:'klien',label:'Klien (CRM)',path:'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0'},
+  {id:'proyek',label:'Proyek',path:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01'},
+  {id:'dokumen',label:'Dokumen',path:'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z'},
+  {id:'tagihan',label:'Tagihan',path:'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z'},
+  {id:'tim',label:'Tim',path:'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'},
+  {id:'laporan',label:'Laporan',path:'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'},
+  {id:'pengaturan',label:'Pengaturan',path:'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'},
+];
+
+function Sidebar() {
+  const {state,dispatch} = useContext(Ctx);
+  const cl = state.collapsed;
+  return (
+    <aside className={`sidebar${cl?' collapsed':''}`}>
+      <div className="sb-brand">
+        <div className="sb-logo">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div className="sb-brand-text">
+          <div className="sb-name">Edar<span>Go</span></div>
+          <div className="sb-sub">ERP System</div>
+        </div>
+      </div>
+      <nav className="sb-nav">
+        <div className="sb-section">Menu Utama</div>
+        {NAV.slice(0,5).map(n=>(
+          <button key={n.id} className={`sb-item${state.module===n.id?' active':''}`} onClick={()=>dispatch({type:'MOD',v:n.id})}>
+            <svg className="sb-icon" viewBox="0 0 24 24"><path d={n.path} strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span className="sb-label">{n.label}</span>
+          </button>
+        ))}
+        <div className="sb-section" style={{marginTop:8}}>Administrasi</div>
+        {NAV.slice(5).map(n=>(
+          <button key={n.id} className={`sb-item${state.module===n.id?' active':''}`} onClick={()=>dispatch({type:'MOD',v:n.id})}>
+            <svg className="sb-icon" viewBox="0 0 24 24"><path d={n.path} strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span className="sb-label">{n.label}</span>
+          </button>
+        ))}
+      </nav>
+      <div className="sb-toggle">
+        <button className="sb-toggle-btn" onClick={()=>dispatch({type:'SIDEBAR'})}>
+          <svg viewBox="0 0 24 24"><path d={cl?'M13 5l7 7-7 7M5 5l7 7-7 7':'M19 12H5M12 5l-7 7 7 7'} strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <span className="sb-toggle-text">{cl?'Perluas':'Perkecil'}</span>
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// TOPBAR
+// ═══════════════════════════════════════════════════════
+function TopBar() {
+  const {state} = useContext(Ctx);
+  const pages = {dashboard:'Dashboard',klien:'Klien & CRM',proyek:'Manajemen Proyek',dokumen:'Dokumen',tagihan:'Tagihan & Invoice',tim:'Tim',laporan:'Laporan',pengaturan:'Pengaturan'};
+  const subs = {dashboard:'Ringkasan semua aktivitas',klien:'Daftar & kelola klien',proyek:'Tracking 7-tahap EdarGo',dokumen:'Checklist dokumen per proyek',tagihan:'Invoice & pembayaran',tim:'Anggota tim & beban kerja',laporan:'Analitik & ekspor data',pengaturan:'Konfigurasi sistem'};
+  return (
+    <div className="topbar">
+      <div className="tb-left">
+        <div>
+          <div className="page-title">{pages[state.module]}</div>
+          <div className="page-subtitle">{subs[state.module]}</div>
+        </div>
+      </div>
+      <div className="tb-right">
+        <span className="tb-date">{today()}</span>
+        <div className="avatar-btn" title="Admin EdarGo">A</div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════
+function Modal({title,onClose,onSave,saveLabel,children,lg}) {
+  return (
+    <div className="modal-bg" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className={`modal${lg?' modal-lg':''}`}>
+        <div className="modal-header">
+          <div className="modal-title">{title}</div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">{children}</div>
+        {onSave && (
+          <div className="modal-footer">
+            <button className="btn btn-ghost" onClick={onClose}>Batal</button>
+            <button className="btn btn-primary" onClick={onSave}>{saveLabel||'Simpan'}</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Inp({label,name,value,onChange,type='text',options,placeholder,required}) {
+  return (
+    <div className="form-group">
+      <label className="form-label">{label}{required&&<span style={{color:'var(--red)'}}>*</span>}</label>
+      {options ? (
+        <select className="form-input" name={name} value={value||''} onChange={onChange}>
+          <option value="">— Pilih —</option>
+          {options.map(o=><option key={o} value={o}>{o}</option>)}
+        </select>
+      ) : type==='textarea' ? (
+        <textarea className="form-input" name={name} value={value||''} onChange={onChange} placeholder={placeholder}/>
+      ) : (
+        <input className="form-input" type={type} name={name} value={value||''} onChange={onChange} placeholder={placeholder}/>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════
+function BarChartComp({data,labels,colors}) {
+  const ref = useRef(null);
+  const inst = useRef(null);
+  useEffect(()=>{
+    if(!ref.current) return;
+    if(inst.current) inst.current.destroy();
+    inst.current = new Chart(ref.current,{
+      type:'bar',
+      data:{labels,datasets:[{data,backgroundColor:colors||'rgba(200,41,26,.8)',borderRadius:6,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{y:{beginAtZero:true,grid:{color:'#F4F5F7'},ticks:{font:{family:'DM Sans',size:11},color:'#9BA3AF'}},
+          x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:11},color:'#9BA3AF'}}}},
+    });
+    return ()=>inst.current?.destroy();
+  },[JSON.stringify(data),JSON.stringify(labels)]);
+  return <div className="chart-wrap"><canvas ref={ref}/></div>;
+}
+
+function Dashboard() {
+  const {state,dispatch} = useContext(Ctx);
+  const {clients,projects,invoices} = state;
+  const aktif = projects.filter(p=>p.status==='Aktif').length;
+  const selesai = projects.filter(p=>p.status==='Selesai').length;
+  const revenue = invoices.filter(i=>i.status==='Lunas').reduce((s,i)=>s+i.amount,0);
+  const pipeline = STEPS.map((s,i)=>projects.filter(p=>p.step===i+1&&p.status==='Aktif').length);
+  const urgent = projects.filter(p=>p.urgent&&p.status==='Aktif');
+
+  const activities = [
+    {icon:'📝',text:'Proyek "BPOM MD — Keripik Singkong" masuk tahap Submit & Monitor',time:'2j lalu',bg:'#FEE2E2'},
+    {icon:'💰',text:'Invoice INV-2025-001 dari CV Berkah Pangan sudah Lunas',time:'5j lalu',bg:'#D1FAE5'},
+    {icon:'👤',text:'Klien baru CV Jamu Tradisi bergabung',time:'1h lalu',bg:'#DBEAFE'},
+    {icon:'⚠️',text:'3 proyek mendekati deadline bulan ini',time:'2h lalu',bg:'#FEF9C3'},
+    {icon:'📋',text:'Dokumen Notif. Kosmetik — Serum Vitamin C disetujui',time:'3h lalu',bg:'#F3F4F6'},
+  ];
+
+  return (
+    <div className="content">
+      <div className="kpi-grid">
+        {[
+          {label:'Total Klien',val:clients.length,icon:'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0',bg:'#EFF6FF',col:'#1D4ED8',badge:'+2 bln ini',bc:'#DBEAFE',bct:'#1D4ED8'},
+          {label:'Proyek Aktif',val:aktif,icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',bg:'#FEF3C7',col:'#92400E',badge:urgent.length+' urgent',bc:'#FEF3C7',bct:'#92400E'},
+          {label:'Revenue Lunas',val:fmtShort(revenue),icon:'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z',bg:'#D1FAE5',col:'#065F46',badge:'YTD 2025',bc:'#D1FAE5',bct:'#065F46'},
+          {label:'Proyek Selesai',val:selesai,icon:'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0',bg:'#EDE9FE',col:'#5B21B6',badge:'Total all',bc:'#EDE9FE',bct:'#5B21B6'},
+        ].map((k,i)=>(
+          <div key={i} className="kpi">
+            <div className="kpi-top">
+              <div className="kpi-icon" style={{background:k.bg,color:k.col}}>
+                <svg viewBox="0 0 24 24"><path d={k.icon} strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </div>
+              <span className="kpi-badge" style={{background:k.bc,color:k.bct}}>{k.badge}</span>
+            </div>
+            <div className="kpi-val">{k.val}</div>
+            <div className="kpi-label">{k.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="g2 mb6">
+        <div className="card">
+          <div className="flex-between mb4">
+            <div className="card-title">Pipeline Proyek (per Tahap)</div>
+          </div>
+          <BarChartComp data={pipeline} labels={STEPS.map(s=>s.length>10?s.slice(0,10)+'…':s)} colors={STEP_COLORS}/>
+        </div>
+        <div className="card">
+          <div className="card-title mb4">Distribusi Jenis Izin</div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:'8px'}}>
+            {LICENSE.map(l=>{
+              const c=projects.filter(p=>p.license===l).length;
+              if(!c) return null;
+              return (
+                <div key={l} style={{display:'flex',alignItems:'center',gap:6,padding:'7px 12px',background:'var(--g50)',borderRadius:8,border:'1.5px solid var(--g200)',fontSize:12.5}}>
+                  <div style={{width:8,height:8,borderRadius:'50%',background:`hsl(${LICENSE.indexOf(l)*45},65%,55%)`}}/>
+                  <b>{l}</b>: {c} proyek
+                </div>
+              );
+            })}
+          </div>
+          {urgent.length>0 && (
+            <div style={{marginTop:16,padding:'12px 14px',background:'#FEF9C3',borderRadius:10,border:'1.5px solid #FBBF24'}}>
+              <div style={{fontFamily:'Sora',fontSize:12,fontWeight:800,color:'#92400E',marginBottom:6}}>⚠️ Urgent — Perlu Perhatian</div>
+              {urgent.map(p=>(
+                <div key={p.id} style={{fontSize:12.5,color:'#78350F',marginBottom:3}}>• {p.name} — Tahap {p.step}: {STEPS[p.step-1]}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="g2">
+        <div className="card">
+          <div className="card-title mb4">Aktivitas Terbaru</div>
+          {activities.map((a,i)=>(
+            <div key={i} className="activity-item">
+              <div className="act-icon" style={{background:a.bg}}>{a.icon}</div>
+              <div className="act-text">{a.text}</div>
+              <div className="act-time">{a.time}</div>
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="card-title mb4">Invoice Mendatang</div>
+          {invoices.filter(i=>i.status!=='Lunas').slice(0,5).map(inv=>{
+            const cl = clients.find(c=>c.id===inv.clientId);
+            return (
+              <div key={inv.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'9px 0',borderBottom:'1px solid var(--g100)'}}>
+                <div>
+                  <div style={{fontWeight:700,fontSize:13,color:'var(--navy)'}}>{inv.no}</div>
+                  <div style={{fontSize:11.5,color:'var(--g600)'}}>{cl?.name}</div>
+                </div>
+                <div style={{textAlign:'right'}}>
+                  <div className="inv-amount">{fmtShort(inv.amount)}</div>
+                  <Badge s={inv.status}/>
+                </div>
+              </div>
+            );
+          })}
+          <button className="btn btn-outline btn-sm" style={{marginTop:12,width:'100%'}} onClick={()=>dispatch({type:'MOD',v:'tagihan'})}>
+            Lihat Semua Invoice →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// KLIEN
+// ═══════════════════════════════════════════════════════
+function Klien() {
+  const {state,dispatch} = useContext(Ctx);
+  const [q,setQ] = useState('');
+  const [filterL,setFL] = useState('');
+  const [filterS,setFS] = useState('');
+  const [modal,setModal] = useState(null); // null|{mode:'add'|'edit',data}
+  const [form,setForm] = useState({});
+
+  const filtered = state.clients.filter(c=>{
+    const m = (c.name+c.contact+c.city).toLowerCase().includes(q.toLowerCase());
+    return m && (!filterL||c.license===filterL) && (!filterS||c.status===filterS);
+  });
+
+  function openAdd(){setForm({status:'Reguler',license:'BPOM MD'});setModal({mode:'add'});}
+  function openEdit(c){setForm({...c});setModal({mode:'edit'});}
+  function inp(e){setForm(f=>({...f,[e.target.name]:e.target.value}));}
+  function save(){
+    if(!form.name||!form.contact){return dispatch({type:'TOAST',v:{msg:'Nama & kontak wajib diisi',type:'error'}});}
+    if(modal.mode==='add'){dispatch({type:'ADD_CLIENT',v:{...form,id:uid(),joined:new Date().toISOString().slice(0,10)}});}
+    else{dispatch({type:'UPD_CLIENT',v:form});}
+    dispatch({type:'TOAST',v:{msg:`Klien ${modal.mode==='add'?'ditambahkan':'diperbarui'}`,type:'success'}});
+    setModal(null);
+  }
+  function del(id){
+    if(confirm('Hapus klien ini?')){dispatch({type:'DEL_CLIENT',v:id});dispatch({type:'TOAST',v:{msg:'Klien dihapus',type:'warning'}});}
+  }
+
+  return (
+    <div className="content">
+      <div className="section-header">
+        <div>
+          <div className="section-title">Klien & CRM</div>
+          <div style={{fontSize:12,color:'var(--g400)',marginTop:2}}>{state.clients.length} klien terdaftar</div>
+        </div>
+        <button className="btn btn-primary" onClick={openAdd}>
+          <svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeLinecap="round"/></svg> Tambah Klien
+        </button>
+      </div>
+      <div className="search-bar">
+        <input className="search-input" placeholder="Cari nama, kontak, kota…" value={q} onChange={e=>setQ(e.target.value)}/>
+        <select className="search-input" style={{flex:'0 0 auto',width:160}} value={filterL} onChange={e=>setFL(e.target.value)}>
+          <option value="">Semua Izin</option>
+          {LICENSE.map(l=><option key={l} value={l}>{l}</option>)}
+        </select>
+        <select className="search-input" style={{flex:'0 0 auto',width:140}} value={filterS} onChange={e=>setFS(e.target.value)}>
+          <option value="">Semua Status</option>
+          {['Baru','Reguler','VIP','Aktif','Tidak Aktif'].map(s=><option key={s}>{s}</option>)}
+        </select>
+      </div>
+      <div className="table-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th><th>Nama Perusahaan</th><th>Kontak</th><th>Jenis Izin</th><th>Kota</th><th>Status</th><th>Bergabung</th><th>Aksi</th>
+          </tr></thead>
+          <tbody>
+            {filtered.length===0 ? (
+              <tr><td colSpan={8} style={{textAlign:'center',padding:'40px',color:'var(--g400)'}}>Tidak ada klien ditemukan</td></tr>
+            ) : filtered.map((c,i)=>(
+              <tr key={c.id}>
+                <td style={{color:'var(--g400)',width:36}}>{i+1}</td>
+                <td>
+                  <div style={{fontWeight:700,color:'var(--navy)',fontSize:13.5}}>{c.name}</div>
+                  <div style={{fontSize:11.5,color:'var(--g400)'}}>{c.notes||''}</div>
+                </td>
+                <td>
+                  <div style={{fontSize:13}}>{c.contact}</div>
+                  <div style={{fontSize:11.5,color:'var(--g400)'}}>{c.phone}</div>
+                </td>
+                <td><span className="tag">{c.license}</span></td>
+                <td style={{fontSize:13}}>{c.city}</td>
+                <td><Badge s={c.status}/></td>
+                <td style={{fontSize:12,color:'var(--g400)'}}>{c.joined?dateStr(c.joined):'-'}</td>
+                <td>
+                  <div className="flex" style={{gap:6}}>
+                    <button className="btn btn-sm btn-outline" onClick={()=>openEdit(c)}>Edit</button>
+                    <button className="btn btn-sm btn-danger" onClick={()=>del(c.id)}>Hapus</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {modal && (
+        <Modal title={modal.mode==='add'?'Tambah Klien Baru':'Edit Data Klien'} onClose={()=>setModal(null)} onSave={save}>
+          <div className="form-grid">
+            <div className="form-full"><Inp label="Nama Perusahaan" name="name" value={form.name} onChange={inp} required placeholder="CV / PT / UD…"/></div>
+            <Inp label="Nama Kontak" name="contact" value={form.contact} onChange={inp} required placeholder="Penanggung jawab"/>
+            <Inp label="No. Telepon / WA" name="phone" value={form.phone} onChange={inp} placeholder="08xx-xxxx-xxxx"/>
+            <Inp label="Email" name="email" value={form.email} onChange={inp} type="email" placeholder="email@perusahaan.com"/>
+            <Inp label="Jenis Izin Utama" name="license" value={form.license} onChange={inp} options={LICENSE}/>
+            <Inp label="Status Klien" name="status" value={form.status} onChange={inp} options={['Baru','Reguler','VIP','Tidak Aktif']}/>
+            <Inp label="Kota" name="city" value={form.city} onChange={inp} placeholder="Jakarta, Bandung…"/>
+            <Inp label="Tanggal Bergabung" name="joined" value={form.joined} onChange={inp} type="date"/>
+            <div className="form-full"><Inp label="Catatan" name="notes" value={form.notes} onChange={inp} type="textarea" placeholder="Info tambahan…"/></div>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// PROYEK
+// ═══════════════════════════════════════════════════════
+function Proyek() {
+  const {state,dispatch} = useContext(Ctx);
+  const [q,setQ] = useState('');
+  const [fStatus,setFS] = useState('');
+  const [fLicense,setFL] = useState('');
+  const [viewMode,setVM] = useState('list');
+  const [modal,setModal] = useState(null);
+  const [detailModal,setDM] = useState(null);
+  const [form,setForm] = useState({});
+
+  const filtered = state.projects.filter(p=>{
+    const cl = state.clients.find(c=>c.id===p.clientId);
+    const m = (p.name+(cl?.name||''+p.pic)).toLowerCase().includes(q.toLowerCase());
+    return m&&(!fStatus||p.status===fStatus)&&(!fLicense||p.license===fLicense);
+  });
+
+  function openAdd(){setForm({status:'Aktif',step:1,license:'BPOM MD',urgent:false,startDate:new Date().toISOString().slice(0,10)});setModal({mode:'add'});}
+  function openEdit(p){setForm({...p});setModal({mode:'edit'});}
+  function inp(e){const v=e.target.type==='checkbox'?e.target.checked:e.target.value;setForm(f=>({...f,[e.target.name]:v}));}
+  function save(){
+    if(!form.name||!form.clientId){return dispatch({type:'TOAST',v:{msg:'Nama & klien wajib diisi',type:'error'}});}
+    if(modal.mode==='add'){dispatch({type:'ADD_PROJ',v:{...form,id:uid(),step:parseInt(form.step)||1,value:parseInt(form.value)||0,docs:{}}});}
+    else{dispatch({type:'UPD_PROJ',v:{...form,step:parseInt(form.step),value:parseInt(form.value)||0}});}
+    dispatch({type:'TOAST',v:{msg:`Proyek ${modal.mode==='add'?'dibuat':'diperbarui'}`,type:'success'}});
+    setModal(null);
+  }
+  function advanceStep(p){
+    if(p.step>=7){dispatch({type:'TOAST',v:{msg:'Proyek sudah di tahap akhir',type:'warning'}});return;}
+    dispatch({type:'UPD_PROJ',v:{...p,step:p.step+1}});
+    dispatch({type:'TOAST',v:{msg:`Proyek maju ke: ${STEPS[p.step]}`,type:'success'}});
+  }
+  function del(id){if(confirm('Hapus proyek ini?')){dispatch({type:'DEL_PROJ',v:id});dispatch({type:'TOAST',v:{msg:'Proyek dihapus',type:'warning'}});}}
+
+  const pipelineCols = STEPS.map((s,i)=>({step:i+1,label:s,projects:filtered.filter(p=>p.step===i+1)}));
+
+  return (
+    <div className="content">
+      <div className="section-header">
+        <div>
+          <div className="section-title">Manajemen Proyek</div>
+          <div style={{fontSize:12,color:'var(--g400)',marginTop:2}}>{filtered.length} proyek • {state.projects.filter(p=>p.status==='Aktif').length} aktif</div>
+        </div>
+        <div className="flex" style={{gap:8,flexWrap:'wrap'}}>
+          <div className="flex" style={{background:'var(--g100)',borderRadius:8,padding:3,gap:2}}>
+            {[['list','≡'],['board','⊞']].map(([v,ico])=>(
+              <button key={v} className={`btn btn-sm${viewMode===v?' btn-navy':''}`} style={{padding:'5px 12px',background:viewMode===v?'var(--navy)':'transparent',border:'none',color:viewMode===v?'#fff':'var(--g600)'}} onClick={()=>setVM(v)}>{ico} {v==='list'?'List':'Board'}</button>
+            ))}
+          </div>
+          <button className="btn btn-primary" onClick={openAdd}>+ Proyek Baru</button>
+        </div>
+      </div>
+
+      <div className="search-bar">
+        <input className="search-input" placeholder="Cari nama proyek, klien, PIC…" value={q} onChange={e=>setQ(e.target.value)}/>
+        <select className="search-input" style={{width:140}} value={fStatus} onChange={e=>setFS(e.target.value)}>
+          <option value="">Semua Status</option>
+          {PROJ_STATUS.map(s=><option key={s}>{s}</option>)}
+        </select>
+        <select className="search-input" style={{width:160}} value={fLicense} onChange={e=>setFL(e.target.value)}>
+          <option value="">Semua Izin</option>
+          {LICENSE.map(l=><option key={l} value={l}>{l}</option>)}
+        </select>
+      </div>
+
+      {viewMode==='board' ? (
+        <div className="pipeline">
+          {pipelineCols.map(col=>(
+            <div key={col.step} className="pipeline-col">
+              <div className="pipeline-head">
+                <span style={{fontSize:10}}>{col.step}. {col.label}</span>
+                <span className="pipeline-count">{col.projects.length}</span>
+              </div>
+              {col.projects.map(p=>{
+                const cl=state.clients.find(c=>c.id===p.clientId);
+                return (
+                  <div key={p.id} className="pipeline-card" onClick={()=>setDM(p)}>
+                    {p.urgent&&<span style={{fontSize:9,fontWeight:800,color:'var(--red)',textTransform:'uppercase',letterSpacing:'.08em'}}>⚠ URGENT</span>}
+                    <div className="pc-name">{p.name.length>40?p.name.slice(0,40)+'…':p.name}</div>
+                    <div className="pc-client">{cl?.name||'—'}</div>
+                    <div className="pc-type"><Badge s={p.status}/></div>
+                  </div>
+                );
+              })}
+              {col.projects.length===0&&<div style={{fontSize:12,color:'var(--g400)',textAlign:'center',padding:'14px 0'}}>Kosong</div>}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Nama Proyek</th><th>Klien</th><th>Jenis Izin</th><th>Tahap</th><th>PIC</th><th>Nilai</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody>
+              {filtered.length===0 ? (
+                <tr><td colSpan={9} style={{textAlign:'center',padding:40,color:'var(--g400)'}}>Tidak ada proyek</td></tr>
+              ) : filtered.map((p,i)=>{
+                const cl=state.clients.find(c=>c.id===p.clientId);
+                return (
+                  <tr key={p.id}>
+                    <td style={{color:'var(--g400)',width:36}}>{i+1}</td>
+                    <td>
+                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                        {p.urgent&&<span style={{fontSize:9,color:'var(--red)',fontWeight:800}}>⚠</span>}
+                        <div>
+                          <div style={{fontWeight:700,fontSize:13,color:'var(--navy)',cursor:'pointer',textDecoration:'underline'}} onClick={()=>setDM(p)}>{p.name.length>45?p.name.slice(0,45)+'…':p.name}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{fontSize:13}}>{cl?.name||'—'}</td>
+                    <td><span className="tag">{p.license}</span></td>
+                    <td>
+                      <div style={{fontSize:12,color:'var(--g600)',marginBottom:4}}>Tahap {p.step}: {STEPS[p.step-1]}</div>
+                      <div className="prog-bar"><div className="prog-fill" style={{width:`${(p.step/7)*100}%`}}/></div>
+                    </td>
+                    <td style={{fontSize:13}}>{p.pic||'—'}</td>
+                    <td style={{fontFamily:'Sora',fontSize:13,fontWeight:700}}>{fmtShort(p.value||0)}</td>
+                    <td><Badge s={p.status}/></td>
+                    <td>
+                      <div className="flex" style={{gap:5}}>
+                        <button className="btn btn-sm btn-outline" onClick={()=>setDM(p)} title="Detail">🔍</button>
+                        <button className="btn btn-sm btn-primary" onClick={()=>advanceStep(p)} title="Maju Tahap" disabled={p.step>=7||p.status!=='Aktif'}>→</button>
+                        <button className="btn btn-sm btn-ghost" onClick={()=>openEdit(p)}>✏</button>
+                        <button className="btn btn-sm btn-danger" onClick={()=>del(p.id)}>🗑</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {detailModal && (()=>{
+        const p = state.projects.find(x=>x.id===detailModal.id)||detailModal;
+        const cl = state.clients.find(c=>c.id===p.clientId);
+        return (
+          <Modal title="Detail Proyek" lg onClose={()=>setDM(null)}>
+            <div className="g2">
+              <div>
+                <div style={{fontFamily:'Sora',fontWeight:800,fontSize:15,color:'var(--navy)',marginBottom:4}}>{p.name}</div>
+                <div style={{fontSize:12.5,color:'var(--g600)',marginBottom:12}}>{cl?.name} • PIC: {p.pic||'—'} • {p.license}</div>
+                <div className="flex" style={{gap:8,marginBottom:16}}><Badge s={p.status}/>{p.urgent&&<span className="badge badge-red">⚠ URGENT</span>}</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:16}}>
+                  {[['Nilai Proyek',fmtShort(p.value||0)],['Tanggal Mulai',p.startDate?dateStr(p.startDate):'-'],['Deadline',p.dueDate?dateStr(p.dueDate):'-'],['Jenis Izin',p.license]].map(([l,v])=>(
+                    <div key={l} style={{padding:'10px 12px',background:'var(--g50)',borderRadius:8,border:'1px solid var(--g200)'}}>
+                      <div style={{fontSize:10.5,color:'var(--g400)',fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em'}}>{l}</div>
+                      <div style={{fontWeight:700,fontSize:13.5,color:'var(--navy)',marginTop:2}}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+                {p.notes&&<div style={{padding:'12px 14px',background:'var(--g50)',borderRadius:8,fontSize:13,color:'var(--g600)',border:'1px solid var(--g200)'}}>{p.notes}</div>}
+              </div>
+              <div>
+                <div style={{fontFamily:'Sora',fontSize:12,fontWeight:800,color:'var(--navy)',marginBottom:12,textTransform:'uppercase',letterSpacing:'.06em'}}>Timeline 7 Tahap</div>
+                <div className="timeline">
+                  {STEPS.map((s,i)=>{
+                    const stepNum=i+1;
+                    const state_class = stepNum<p.step?'tl-done':stepNum===p.step?'tl-active':'tl-pending';
+                    return (
+                      <div key={i} className="tl-item">
+                        <div className={`tl-dot ${state_class}`}>{stepNum<p.step?'✓':stepNum}</div>
+                        <div className="tl-content">
+                          <div className="tl-step">{s}</div>
+                          <div className="tl-date">{stepNum===p.step?'● Sedang berjalan':stepNum<p.step?'✓ Selesai':'○ Belum dimulai'}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            <div style={{marginTop:16,display:'flex',gap:10}}>
+              <button className="btn btn-primary" onClick={()=>{advanceStep(p);setDM(null);}}>Maju Tahap →</button>
+              <button className="btn btn-outline" onClick={()=>{openEdit(p);setDM(null);}}>Edit Proyek</button>
+              <button className="btn btn-ghost" onClick={()=>setDM(null)}>Tutup</button>
+            </div>
+          </Modal>
+        );
+      })()}
+
+      {/* Add/Edit Modal */}
+      {modal && (
+        <Modal title={modal.mode==='add'?'Buat Proyek Baru':'Edit Proyek'} onClose={()=>setModal(null)} onSave={save}>
+          <div className="form-grid">
+            <div className="form-full"><Inp label="Nama Proyek" name="name" value={form.name} onChange={inp} required placeholder="Nama produk & jenis izin"/></div>
+            <Inp label="Klien" name="clientId" value={form.clientId} onChange={inp} options={state.clients.map(c=>({id:c.id,name:c.name}))} required/>
+            <Inp label="Jenis Izin" name="license" value={form.license} onChange={inp} options={LICENSE}/>
+            <Inp label="Tahap Saat Ini (1-7)" name="step" value={form.step} onChange={inp} type="number"/>
+            <Inp label="Status" name="status" value={form.status} onChange={inp} options={PROJ_STATUS}/>
+            <Inp label="PIC (Staf EdarGo)" name="pic" value={form.pic} onChange={inp} options={state.team.map(t=>t.name)}/>
+            <Inp label="Nilai Proyek (Rp)" name="value" value={form.value} onChange={inp} type="number" placeholder="4500000"/>
+            <Inp label="Tanggal Mulai" name="startDate" value={form.startDate} onChange={inp} type="date"/>
+            <Inp label="Target Selesai" name="dueDate" value={form.dueDate} onChange={inp} type="date"/>
+            <div className="form-group" style={{justifyContent:'flex-end',paddingTop:8}}>
+              <label style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer',fontFamily:'Sora',fontSize:12.5,fontWeight:700,color:'var(--red)'}}>
+                <input type="checkbox" name="urgent" checked={!!form.urgent} onChange={inp}/>
+                ⚠ Tandai Urgent
+              </label>
+            </div>
+            <div className="form-full"><Inp label="Catatan Internal" name="notes" value={form.notes} onChange={inp} type="textarea"/></div>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// DOKUMEN
+// ═══════════════════════════════════════════════════════
+function Dokumen() {
+  const {state,dispatch} = useContext(Ctx);
+  const [selProj,setSel] = useState(state.projects[0]?.id||'');
+  const proj = state.projects.find(p=>p.id===selProj);
+  const client = proj ? state.clients.find(c=>c.id===proj.clientId) : null;
+  const tmpl = proj ? (DOC_TMPL[proj.license]||DOC_TMPL.default) : [];
+  const docs = proj?.docs||{};
+  const STATUS_OPTS = ['Belum Disiapkan','Perlu Disiapkan','Dikirim','Revisi','Disetujui'];
+
+  function toggleDoc(name){
+    const cur = docs[name]||{status:'Belum Disiapkan',checked:false};
+    const updated = {...proj,docs:{...docs,[name]:{...cur,checked:!cur.checked,status:!cur.checked?'Dikirim':'Belum Disiapkan'}}};
+    dispatch({type:'UPD_PROJ',v:updated});
+  }
+  function setDocStatus(name,status){
+    const cur=docs[name]||{status:'Belum Disiapkan',checked:false};
+    dispatch({type:'UPD_PROJ',v:{...proj,docs:{...docs,[name]:{...cur,status,checked:['Dikirim','Disetujui'].includes(status)}}}});
+  }
+
+  const done = tmpl.filter(d=>(docs[d]?.status==='Disetujui')).length;
+  const sent = tmpl.filter(d=>['Dikirim','Revisi'].includes(docs[d]?.status)).length;
+
+  const statusColor2 = s=>({
+    'Belum Disiapkan':'var(--g400)','Perlu Disiapkan':'var(--gold)','Dikirim':'var(--navy)',
+    'Revisi':'var(--red)','Disetujui':'#065F46'
+  }[s]||'var(--g400)');
+
+  return (
+    <div className="content">
+      <div className="section-header">
+        <div className="section-title">Checklist Dokumen</div>
+      </div>
+      <div className="g2 mb6" style={{gridTemplateColumns:'280px 1fr'}}>
+        <div className="card" style={{padding:16}}>
+          <div className="card-title" style={{marginBottom:12}}>Pilih Proyek</div>
+          {state.projects.filter(p=>p.status!=='Batal').map(p=>{
+            const cl=state.clients.find(c=>c.id===p.clientId);
+            const tdoc=DOC_TMPL[p.license]||DOC_TMPL.default;
+            const done2=tdoc.filter(d=>p.docs?.[d]?.status==='Disetujui').length;
+            return (
+              <div key={p.id} onClick={()=>setSel(p.id)}
+                style={{padding:'10px 12px',borderRadius:9,cursor:'pointer',border:`1.5px solid ${selProj===p.id?'var(--red)':'var(--g200)'}`,background:selProj===p.id?'var(--red-s)':'var(--white)',marginBottom:6,transition:'all .15s'}}>
+                <div style={{fontWeight:700,fontSize:12.5,color:selProj===p.id?'var(--red)':'var(--navy)'}}>{p.name.length>35?p.name.slice(0,35)+'…':p.name}</div>
+                <div style={{fontSize:11,color:'var(--g400)',marginTop:3}}>{cl?.name} • {done2}/{tdoc.length} disetujui</div>
+                <div className="prog-bar" style={{marginTop:6}}><div className="prog-fill" style={{width:`${(done2/tdoc.length)*100}%`}}/></div>
+              </div>
+            );
+          })}
+        </div>
+        <div>
+          {proj ? (
+            <div className="card">
+              <div className="flex-between mb4">
+                <div>
+                  <div className="card-title">{proj.name}</div>
+                  <div className="card-sub">{client?.name} • {proj.license} • Tahap {proj.step}: {STEPS[proj.step-1]}</div>
+                </div>
+                <div style={{display:'flex',gap:16,alignItems:'center'}}>
+                  <ProgressRing val={done} max={tmpl.length}/>
+                  <div style={{fontSize:12,color:'var(--g600)',lineHeight:1.7}}>
+                    <div><b style={{color:'#065F46'}}>{done}</b> disetujui</div>
+                    <div><b style={{color:'var(--navy)'}}>{sent}</b> dikirim/revisi</div>
+                    <div><b style={{color:'var(--g400)'}}>{tmpl.length-done-sent}</b> belum</div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                {tmpl.map((docName,i)=>{
+                  const d = docs[docName]||{status:'Belum Disiapkan',checked:false};
+                  return (
+                    <div key={i} className="doc-item" style={{borderColor:d.status==='Disetujui'?'#A7F3D0':d.status==='Revisi'?'rgba(200,41,26,.3)':'var(--g200)',background:d.status==='Disetujui'?'#F0FDF4':'var(--white)'}}>
+                      <div className={`doc-check${d.checked?' checked':''}`} onClick={()=>toggleDoc(docName)}>
+                        <svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <div className="doc-name" style={{textDecoration:d.status==='Disetujui'?'line-through':''}}>{i+1}. {docName}</div>
+                      <select className="doc-status-sel"
+                        style={{background:d.status==='Disetujui'?'#D1FAE5':d.status==='Revisi'?'var(--red-s)':d.status==='Dikirim'?'#DBEAFE':'var(--g100)',color:statusColor2(d.status)}}
+                        value={d.status} onChange={e=>setDocStatus(docName,e.target.value)}>
+                        {STATUS_OPTS.map(s=><option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="card empty-state">
+              <svg viewBox="0 0 24 24"><path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" strokeLinecap="round"/></svg>
+              <p>Pilih proyek untuk melihat checklist dokumen</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// TAGIHAN
+// ═══════════════════════════════════════════════════════
+function Tagihan() {
+  const {state,dispatch} = useContext(Ctx);
+  const [q,setQ] = useState('');
+  const [fStatus,setFS] = useState('');
+  const [modal,setModal] = useState(null);
+  const [form,setForm] = useState({});
+
+  const filtered = state.invoices.filter(i=>{
+    const cl=state.clients.find(c=>c.id===i.clientId);
+    const m = (i.no+(cl?.name||'')).toLowerCase().includes(q.toLowerCase());
+    return m&&(!fStatus||i.status===fStatus);
+  });
+
+  const totalLunas = state.invoices.filter(i=>i.status==='Lunas').reduce((s,i)=>s+i.amount,0);
+  const totalPending = state.invoices.filter(i=>i.status==='Terkirim').reduce((s,i)=>s+i.amount,0);
+  const totalTerlambat = state.invoices.filter(i=>i.status==='Terlambat').reduce((s,i)=>s+i.amount,0);
+
+  function openAdd(){
+    const nextNo = 'INV-2025-'+String(state.invoices.length+1).padStart(3,'0');
+    setForm({status:'Draft',no:nextNo,issuedDate:new Date().toISOString().slice(0,10)});
+    setModal({mode:'add'});
+  }
+  function openEdit(inv){setForm({...inv});setModal({mode:'edit'});}
+  function inp(e){setForm(f=>({...f,[e.target.name]:e.target.value}));}
+  function save(){
+    if(!form.no||!form.clientId){return dispatch({type:'TOAST',v:{msg:'No. invoice & klien wajib diisi',type:'error'}});}
+    if(modal.mode==='add'){dispatch({type:'ADD_INV',v:{...form,id:uid(),amount:parseFloat(form.amount)||0,dp:parseFloat(form.dp)||0}});}
+    else{dispatch({type:'UPD_INV',v:{...form,amount:parseFloat(form.amount)||0,dp:parseFloat(form.dp)||0}});}
+    dispatch({type:'TOAST',v:{msg:`Invoice ${modal.mode==='add'?'dibuat':'diperbarui'}`,type:'success'}});
+    setModal(null);
+  }
+  function changeStatus(inv,status){
+    dispatch({type:'UPD_INV',v:{...inv,status}});
+    dispatch({type:'TOAST',v:{msg:`Status diubah: ${status}`,type:'success'}});
+  }
+  function del(id){if(confirm('Hapus invoice ini?')){dispatch({type:'DEL_INV',v:id});dispatch({type:'TOAST',v:{msg:'Invoice dihapus',type:'warning'}});}}
+
+  return (
+    <div className="content">
+      <div className="section-header">
+        <div className="section-title">Tagihan & Invoice</div>
+        <button className="btn btn-primary" onClick={openAdd}>+ Invoice Baru</button>
+      </div>
+
+      <div className="kpi-grid mb6" style={{gridTemplateColumns:'repeat(3,1fr)'}}>
+        {[['Revenue Lunas',totalLunas,'badge-green','#065F46'],['Pending Tagihan',totalPending,'badge-blue','#1D4ED8'],['Terlambat',totalTerlambat,'badge-red','#991B1B']].map(([l,v,bc,tc])=>(
+          <div key={l} className="kpi">
+            <div className="kpi-val" style={{color:'var(--navy)',fontSize:22}}>{fmtShort(v)}</div>
+            <div className="kpi-label">{l}</div>
+            <div style={{marginTop:8}}><span className={`badge ${bc}`}>{l}</span></div>
+          </div>
+        ))}
+      </div>
+
+      <div className="search-bar">
+        <input className="search-input" placeholder="Cari no. invoice, klien…" value={q} onChange={e=>setQ(e.target.value)}/>
+        <select className="search-input" style={{width:150}} value={fStatus} onChange={e=>setFS(e.target.value)}>
+          <option value="">Semua Status</option>
+          {INV_STATUS.map(s=><option key={s}>{s}</option>)}
+        </select>
+      </div>
+
+      <div className="table-wrap">
+        <table>
+          <thead><tr><th>No. Invoice</th><th>Klien</th><th>Proyek</th><th>Total</th><th>Jatuh Tempo</th><th>Status</th><th>Ubah Status</th><th>Aksi</th></tr></thead>
+          <tbody>
+            {filtered.length===0 ? (
+              <tr><td colSpan={8} style={{textAlign:'center',padding:40,color:'var(--g400)'}}>Tidak ada invoice</td></tr>
+            ) : filtered.map(inv=>{
+              const cl=state.clients.find(c=>c.id===inv.clientId);
+              const pr=state.projects.find(p=>p.id===inv.projectId);
+              const overdue = inv.status==='Terlambat'||('Terkirim'===inv.status&&new Date(inv.dueDate)<new Date());
+              return (
+                <tr key={inv.id} style={{background:overdue&&inv.status!=='Lunas'?'#FFF7F7':''}}>
+                  <td style={{fontFamily:'Sora',fontWeight:700,fontSize:13}}>{inv.no}</td>
+                  <td style={{fontSize:13}}>{cl?.name||'—'}</td>
+                  <td style={{fontSize:12,color:'var(--g600)'}}>{pr?.name?.slice(0,30)||'—'}</td>
+                  <td>
+                    <div className="inv-amount">{fmtShort(inv.amount)}</div>
+                    {inv.dp>0&&<div style={{fontSize:11,color:'var(--g400)'}}>DP: {fmtShort(inv.dp)}</div>}
+                  </td>
+                  <td style={{fontSize:12.5,color:overdue&&inv.status!=='Lunas'?'var(--red)':'var(--g800)'}}>{inv.dueDate?dateStr(inv.dueDate):'-'}</td>
+                  <td><Badge s={inv.status}/></td>
+                  <td>
+                    <select style={{fontFamily:'Sora',fontSize:11,fontWeight:700,padding:'4px 8px',border:'1.5px solid var(--g200)',borderRadius:7,cursor:'pointer',color:'var(--navy)',background:'var(--white)'}}
+                      value={inv.status} onChange={e=>changeStatus(inv,e.target.value)}>
+                      {INV_STATUS.map(s=><option key={s}>{s}</option>)}
+                    </select>
+                  </td>
+                  <td>
+                    <div className="flex" style={{gap:5}}>
+                      <button className="btn btn-sm btn-ghost" onClick={()=>openEdit(inv)}>✏</button>
+                      <button className="btn btn-sm btn-danger" onClick={()=>del(inv.id)}>🗑</button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {modal && (
+        <Modal title={modal.mode==='add'?'Invoice Baru':'Edit Invoice'} onClose={()=>setModal(null)} onSave={save}>
+          <div className="form-grid">
+            <Inp label="No. Invoice" name="no" value={form.no} onChange={inp} required/>
+            <Inp label="Status" name="status" value={form.status} onChange={inp} options={INV_STATUS}/>
+            <Inp label="Klien" name="clientId" value={form.clientId} onChange={inp} options={state.clients.map(c=>({id:c.id,name:c.name}))} required/>
+            <Inp label="Proyek Terkait" name="projectId" value={form.projectId} onChange={inp} options={state.projects.map(p=>({id:p.id,name:p.name}))}/>
+            <Inp label="Total Tagihan (Rp)" name="amount" value={form.amount} onChange={inp} type="number" placeholder="4500000"/>
+            <Inp label="Down Payment (Rp)" name="dp" value={form.dp} onChange={inp} type="number" placeholder="2250000"/>
+            <Inp label="Tanggal Terbit" name="issuedDate" value={form.issuedDate} onChange={inp} type="date"/>
+            <Inp label="Jatuh Tempo" name="dueDate" value={form.dueDate} onChange={inp} type="date"/>
+            <div className="form-full"><Inp label="Catatan" name="notes" value={form.notes} onChange={inp} type="textarea"/></div>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// TIM
+// ═══════════════════════════════════════════════════════
+function Tim() {
+  const {state} = useContext(Ctx);
+  return (
+    <div className="content">
+      <div className="section-header">
+        <div className="section-title">Tim EdarGo</div>
+        <span style={{fontSize:12,color:'var(--g400)'}}>{state.team.length} anggota tim</span>
+      </div>
+      <div className="g3">
+        {state.team.map(t=>{
+          const activeProj = state.projects.filter(p=>p.pic===t.name&&p.status==='Aktif').length;
+          const doneProj = state.projects.filter(p=>p.pic===t.name&&p.status==='Selesai').length;
+          return (
+            <div key={t.id} className="team-card">
+              <div className="team-av" style={{background:t.color}}>{t.initials}</div>
+              <div style={{flex:1}}>
+                <div className="team-name">{t.name}</div>
+                <div className="team-role">{t.role}</div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:4,margin:'8px 0'}}>
+                  {t.skills.map(s=><span key={s} className="tag" style={{fontSize:10.5}}>{s}</span>)}
+                </div>
+                <div className="team-stats">
+                  <div className="ts">{activeProj}<span>Aktif</span></div>
+                  <div className="ts">{doneProj}<span>Selesai</span></div>
+                  <div className="ts">{t.active+t.done}<span>Total</span></div>
+                </div>
+                <div className="prog-bar" style={{marginTop:8}}>
+                  <div className="prog-fill" style={{width:`${doneProj/(doneProj+activeProj+1)*100}%`,background:t.color}}/>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="card" style={{marginTop:20}}>
+        <div className="card-title mb4">Distribusi Beban Kerja Aktif</div>
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>Nama</th><th>Role</th><th>Proyek Aktif</th><th>Proyek Selesai</th><th>Keahlian</th></tr></thead>
+            <tbody>
+              {state.team.map(t=>{
+                const ap=state.projects.filter(p=>p.pic===t.name&&p.status==='Aktif').length;
+                const dp=state.projects.filter(p=>p.pic===t.name&&p.status==='Selesai').length;
+                return (
+                  <tr key={t.id}>
+                    <td><div style={{display:'flex',alignItems:'center',gap:9}}>
+                      <div style={{width:28,height:28,borderRadius:'50%',background:t.color,color:'#fff',fontFamily:'Sora',fontSize:10,fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center'}}>{t.initials}</div>
+                      <span style={{fontWeight:700,fontSize:13}}>{t.name}</span>
+                    </div></td>
+                    <td style={{fontSize:12.5,color:'var(--g600)'}}>{t.role}</td>
+                    <td><span style={{fontFamily:'Sora',fontWeight:800,fontSize:15,color:'var(--navy)'}}>{ap}</span></td>
+                    <td><span style={{fontFamily:'Sora',fontWeight:800,fontSize:15,color:'#065F46'}}>{dp}</span></td>
+                    <td>{t.skills.map(s=><span key={s} className="tag" style={{marginRight:4,fontSize:10.5}}>{s}</span>)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// LAPORAN
+// ═══════════════════════════════════════════════════════
+function Laporan() {
+  const {state,dispatch} = useContext(Ctx);
+  const {clients,projects,invoices} = state;
+  const totalRev = invoices.reduce((s,i)=>s+i.amount,0);
+  const lunas = invoices.filter(i=>i.status==='Lunas').reduce((s,i)=>s+i.amount,0);
+  const pending = invoices.filter(i=>['Terkirim','Terlambat'].includes(i.status)).reduce((s,i)=>s+i.amount,0);
+  const byLicense = LICENSE.map(l=>({l,c:projects.filter(p=>p.license===l).length})).filter(x=>x.c>0);
+
+  async function exportToSheet() {
+    const url = state.gasUrl;
+    if(!url){dispatch({type:'TOAST',v:{msg:'Apps Script URL belum diset. Buka Pengaturan.',type:'error'}});return;}
+    dispatch({type:'TOAST',v:{msg:'Mengekspor data ke Google Sheets…',type:'success'}});
+    try {
+      await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'exportAll',clients,projects,invoices})});
+      dispatch({type:'TOAST',v:{msg:'Export selesai! Cek Google Sheets Anda.',type:'success'}});
+    } catch(e) {
+      dispatch({type:'TOAST',v:{msg:'Export gagal. Periksa URL Apps Script.',type:'error'}});
+    }
+  }
+
+  return (
+    <div className="content">
+      <div className="section-header">
+        <div className="section-title">Laporan & Analitik</div>
+        <button className="btn btn-primary" onClick={exportToSheet}>
+          <svg viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" strokeLinecap="round"/></svg>
+          Export ke Google Sheets
+        </button>
+      </div>
+
+      <div className="g3 mb6">
+        {[['Total Klien',clients.length,'👥',clients.filter(c=>c.status==='VIP').length+' VIP'],
+          ['Total Proyek',projects.length,'📋',projects.filter(p=>p.status==='Aktif').length+' aktif'],
+          ['Tingkat Selesai',projects.length>0?Math.round(projects.filter(p=>p.status==='Selesai').length/projects.length*100)+'%':'0%','🎯',projects.filter(p=>p.status==='Selesai').length+' proyek selesai'],
+        ].map(([l,v,icon,sub])=>(
+          <div key={l} className="report-card">
+            <div style={{fontSize:22}}>{icon}</div>
+            <div className="val">{v}</div>
+            <div className="title">{l}</div>
+            <div className="sub">{sub}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="g2 mb6">
+        <div className="card">
+          <div className="card-title mb4">Ringkasan Keuangan</div>
+          {[['Total Tagihan Diterbitkan',totalRev,'var(--navy)'],['Revenue Sudah Lunas',lunas,'#065F46'],['Masih Pending',pending,'#92400E']].map(([l,v,c])=>(
+            <div key={l} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid var(--g100)'}}>
+              <div style={{fontSize:13,color:'var(--g600)'}}>{l}</div>
+              <div style={{fontFamily:'Sora',fontWeight:800,fontSize:14,color:c}}>{fmtShort(v)}</div>
+            </div>
+          ))}
+          <div style={{marginTop:12,padding:'12px 14px',background:'var(--g50)',borderRadius:9,fontSize:13,color:'var(--g600)'}}>
+            Tingkat koleksi: <b style={{color:'var(--navy)'}}>{totalRev>0?Math.round(lunas/totalRev*100):0}%</b>
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-title mb4">Distribusi Proyek per Jenis Izin</div>
+          {byLicense.map(({l,c})=>(
+            <div key={l} style={{marginBottom:10}}>
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:13,color:'var(--g800)',marginBottom:4}}>
+                <span>{l}</span><b>{c} proyek</b>
+              </div>
+              <div className="prog-bar"><div className="prog-fill" style={{width:`${(c/projects.length)*100}%`}}/></div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title mb4">Status Tahap Pipeline</div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          {STEPS.map((s,i)=>{
+            const c=projects.filter(p=>p.step===i+1&&p.status==='Aktif').length;
+            return (
+              <div key={s} style={{flex:'1',minWidth:100,padding:'12px 14px',background:c>0?'var(--red-s)':'var(--g50)',border:`1.5px solid ${c>0?'rgba(200,41,26,.2)':'var(--g200)'}`,borderRadius:10,textAlign:'center'}}>
+                <div style={{fontFamily:'Sora',fontSize:20,fontWeight:900,color:c>0?'var(--red)':'var(--g400)'}}>{c}</div>
+                <div style={{fontSize:10.5,color:'var(--g600)',marginTop:3,lineHeight:1.4}}>{i+1}. {s}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// PENGATURAN
+// ═══════════════════════════════════════════════════════
+function Pengaturan() {
+  const {state,dispatch} = useContext(Ctx);
+  const [gasUrl,setGU] = useState(state.gasUrl);
+  const [sheetId,setSI] = useState(state.sheetId);
+  const [testing,setTesting] = useState(false);
+
+  function saveConfig(){
+    localStorage.setItem('eg_gasUrl',gasUrl);
+    localStorage.setItem('eg_sheetId',sheetId);
+    dispatch({type:'SET_CFG',gasUrl,sheetId});
+    dispatch({type:'TOAST',v:{msg:'Konfigurasi disimpan',type:'success'}});
+  }
+
+  async function testConn(){
+    if(!gasUrl){dispatch({type:'TOAST',v:{msg:'URL Apps Script belum diisi',type:'error'}});return;}
+    setTesting(true);
+    try {
+      const r = await fetch(gasUrl+'?action=ping',{mode:'no-cors'});
+      dispatch({type:'TOAST',v:{msg:'Koneksi berhasil! Apps Script aktif.',type:'success'}});
+    } catch(e) {
+      dispatch({type:'TOAST',v:{msg:'Tidak dapat terhubung. Periksa URL.',type:'error'}});
+    }
+    setTesting(false);
+  }
+
+  const gasCode = `// ═══════════════════════════════════════════════════
+// EdarGo ERP — Google Apps Script Backend
+// Paste ke Apps Script Editor, lalu Deploy as Web App
+// ═══════════════════════════════════════════════════
+
+const SHEET_ID = ''; // Isi dengan Google Sheet ID Anda
+
+function doGet(e) {
+  const action = e.parameter.action;
+  if (action === 'ping') return ok({status:'ok',time:new Date()});
+  if (action === 'getAll') return ok(getAllData());
+  return ok({error:'Unknown action'});
+}
+
+function doPost(e) {
+  const body = JSON.parse(e.postData.contents);
+  const {action, data} = body;
+  
+  if (action === 'saveClient') return ok(saveRow('Klien', data));
+  if (action === 'saveProject') return ok(saveRow('Proyek', data));
+  if (action === 'saveInvoice') return ok(saveRow('Tagihan', data));
+  if (action === 'exportAll') return ok(exportAll(body));
+  return ok({error:'Unknown action'});
+}
+
+function getAllData() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  return {
+    clients: sheetToJSON(ss, 'Klien'),
+    projects: sheetToJSON(ss, 'Proyek'),
+    invoices: sheetToJSON(ss, 'Tagihan'),
+  };
+}
+
+function sheetToJSON(ss, name) {
+  try {
+    const sh = ss.getSheetByName(name);
+    if (!sh) return [];
+    const [headers, ...rows] = sh.getDataRange().getValues();
+    return rows.map(r => Object.fromEntries(headers.map((h,i) => [h,r[i]])));
+  } catch(e) { return []; }
+}
+
+function saveRow(sheetName, data) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sh = ss.getSheetByName(sheetName);
+  if (!sh) sh = ss.insertSheet(sheetName);
+  const keys = Object.keys(data);
+  if (sh.getLastRow() === 0) sh.appendRow(keys);
+  sh.appendRow(keys.map(k => data[k]));
+  return {saved: true};
+}
+
+function exportAll(body) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheets = {Klien: body.clients, Proyek: body.projects, Tagihan: body.invoices};
+  for (const [name, rows] of Object.entries(sheets)) {
+    if (!rows || rows.length === 0) continue;
+    let sh = ss.getSheetByName(name);
+    if (!sh) sh = ss.insertSheet(name);
+    else sh.clearContents();
+    const headers = Object.keys(rows[0]);
+    sh.appendRow(headers);
+    rows.forEach(r => sh.appendRow(headers.map(h => r[h]||'')));
+  }
+  return {exported: true, time: new Date()};
+}
+
+function ok(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+
+  return (
+    <div className="content">
+      <div className="section-header">
+        <div className="section-title">Pengaturan Sistem</div>
+      </div>
+
+      <div className="settings-block">
+        <div className="settings-title">🔗 Koneksi Apps Script</div>
+        <div className="settings-desc">Hubungkan ERP ke Google Apps Script untuk sinkronisasi data ke Google Sheets. Deploy Apps Script sebagai Web App dan tempel URL-nya di sini.</div>
+        <div className="form-grid">
+          <div className="form-full form-group">
+            <label className="form-label">Apps Script Web App URL</label>
+            <input className="form-input" value={gasUrl} onChange={e=>setGU(e.target.value)} placeholder="https://script.google.com/macros/s/xxxx/exec"/>
+          </div>
+          <div className="form-full form-group">
+            <label className="form-label">Google Sheet ID (opsional)</label>
+            <input className="form-input" value={sheetId} onChange={e=>setSI(e.target.value)} placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"/>
+          </div>
+        </div>
+        <div style={{display:'flex',gap:10,marginTop:14}}>
+          <button className="btn btn-primary" onClick={saveConfig}>Simpan Konfigurasi</button>
+          <button className="btn btn-outline" onClick={testConn} disabled={testing}>{testing?'Menguji…':'Test Koneksi'}</button>
+        </div>
+      </div>
+
+      <div className="settings-block">
+        <div className="settings-title">🌐 Konfigurasi Subdomain (Cloudflare)</div>
+        <div className="settings-desc">Arahkan subdomain berikut ke Cloudflare Pages setelah deploy. Buat CNAME record di Cloudflare DNS dashboard.</div>
+        <table className="dns-table">
+          <thead><tr><th>Subdomain</th><th>Type</th><th>Value / Target</th><th>Fungsi</th></tr></thead>
+          <tbody>
+            {[
+              ['app.edargo.com','CNAME','edargo-erp.pages.dev','Frontend ERP (Cloudflare Pages)'],
+              ['api.edargo.com','CNAME','script.google.com via Worker','Google Apps Script API (opsional)'],
+              ['docs.edargo.com','CNAME','edargo-docs.pages.dev','Modul dokumen (jika dipisah)'],
+            ].map(([sub,type,val,fn])=>(
+              <tr key={sub}><td><b>{sub}</b></td><td>{type}</td><td style={{fontFamily:'monospace',fontSize:12}}>{val}</td><td>{fn}</td></tr>
+            ))}
+          </tbody>
+        </table>
+        <div style={{marginTop:12,padding:'10px 14px',background:'#DBEAFE',borderRadius:9,fontSize:12.5,color:'#1E40AF'}}>
+          💡 <b>Deploy ke Cloudflare Pages:</b> Buat repository GitHub → Upload file <code style={{background:'rgba(0,0,0,.08)',padding:'1px 5px',borderRadius:4}}>index.html</code> → Connect ke Cloudflare Pages → Set custom domain ke <code style={{background:'rgba(0,0,0,.08)',padding:'1px 5px',borderRadius:4}}>app.edargo.com</code>
+        </div>
+      </div>
+
+      <div className="settings-block">
+        <div className="settings-title">📋 Apps Script Code</div>
+        <div className="settings-desc">Copy kode berikut dan paste ke <b>Apps Script Editor</b> di Google Drive. Klik Deploy → New Deployment → Web App → Execute as Me → Who has access: Anyone.</div>
+        <div style={{position:'relative'}}>
+          <button className="btn btn-sm btn-outline" style={{position:'absolute',top:8,right:8,zIndex:1}} onClick={()=>{navigator.clipboard?.writeText(gasCode);dispatch({type:'TOAST',v:{msg:'Kode disalin!',type:'success'}});}}>📋 Salin</button>
+          <pre className="code-block" style={{maxHeight:320,overflow:'auto'}}>{gasCode}</pre>
+        </div>
+      </div>
+
+      <div className="settings-block">
+        <div className="settings-title">📊 Arsip Data Lokal</div>
+        <div className="settings-desc">Data ERP disimpan di localStorage browser Anda. Export untuk backup, atau reset untuk kembali ke data awal.</div>
+        <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+          <button className="btn btn-outline" onClick={()=>{
+            const data={clients:state.clients,projects:state.projects,invoices:state.invoices,team:state.team};
+            const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');a.href=url;a.download='edargo-erp-backup.json';a.click();
+            dispatch({type:'TOAST',v:{msg:'Data berhasil diexport',type:'success'}});
+          }}>📥 Export JSON Backup</button>
+          <button className="btn btn-danger" onClick={()=>{
+            if(confirm('Reset semua data ke default? Tindakan ini tidak bisa dibatalkan.')){
+              localStorage.clear();
+              window.location.reload();
+            }
+          }}>🔄 Reset ke Data Awal</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// APP ROOT
+// ═══════════════════════════════════════════════════════
+function App() {
+  const [state,dispatch] = useReducer(reducer,initState);
+
+  // Persist to localStorage
+  useEffect(()=>{
+    try {
+      localStorage.setItem('eg_clients',JSON.stringify(state.clients));
+      localStorage.setItem('eg_projects',JSON.stringify(state.projects));
+      localStorage.setItem('eg_invoices',JSON.stringify(state.invoices));
+      localStorage.setItem('eg_team',JSON.stringify(state.team));
+    } catch(e){}
+  },[state.clients,state.projects,state.invoices,state.team]);
+
+  const modules = {dashboard:<Dashboard/>,klien:<Klien/>,proyek:<Proyek/>,dokumen:<Dokumen/>,tagihan:<Tagihan/>,tim:<Tim/>,laporan:<Laporan/>,pengaturan:<Pengaturan/>};
+
+  return (
+    <Ctx.Provider value={{state,dispatch}}>
+      <div className="layout">
+        <Sidebar/>
+        <div className="main">
+          <TopBar/>
+          {modules[state.module]||<Dashboard/>}
+        </div>
+      </div>
+      <Toast/>
+    </Ctx.Provider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
